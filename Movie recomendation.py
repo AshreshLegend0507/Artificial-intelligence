@@ -1,91 +1,51 @@
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 from textblob import TextBlob
-from colorama import init, Fore
-import time
-import sys
+from colorama import Fore, Style, init
 
-# Initialize colorama
+# Initialize colorama for colored text
 init(autoreset=True)
 
-# Load and preprocess the dataset
-def load_data(file_path='C:\Users\ashre\Downloads\AI_Movie_recommendation_system_boilerplate_code_AIEPCM1L6-1c2b (1)\imdb_top_1000.csv'):
-    try:
-        df = pd.read_csv(file_path)
-        df['combined_features'] = df['Genre'].fillna('') + ' ' + df['Overview'].fillna('')
-        return df
-    except FileNotFoundError:
-        print(Fore.RED + f"Error: The file '{file_path}' was not found.")
-        exit()
+# --- Step 1: Create a sample movie dataset ---
+data = {
+    "Title": ["Inception", "Titanic", "Avengers", "Interstellar", "Joker", "Frozen"],
+    "Genre": ["Sci-Fi", "Romance", "Action", "Sci-Fi", "Drama", "Animation"],
+    "Description": [
+        "A mind-bending thriller about dream invasion.",
+        "A love story set during the Titanic disaster.",
+        "Superheroes team up to save the world.",
+        "Exploration of space and time to save humanity.",
+        "A dark story about society and mental health.",
+        "A princess saves her kingdom with magical powers."
+    ]
+}
 
-movies_df = load_data()
+movies = pd.DataFrame(data)
 
-# Vectorize the combined features and compute cosine similarity
-tfidf_TfidfVectorizer = (stop_words='english')
-tfidf_matrix = tfidf.fit_transform(movies_df['combined_features'])
-cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+# --- Step 2: Get user input ---
+print(Fore.CYAN + " Welcome to the AI Movie Recommendation System!\n")
 
-# List all unique genres
-def list_genres(dt):
-    return sorted (set(genre.strip() for sublist in df['Genre'].dropna().str.split(', ') for genre in sublist))
-    genres = list_genres (movies_df)
+genre_input = input(Fore.YELLOW + "Enter a movie genre you like (e.g., Sci-Fi, Action, Drama): ").strip()
+sentiment_input = input(Fore.YELLOW + "Describe the kind of movie you want (e.g., thrilling, romantic, funny): ").strip()
 
-# Recommend movies based on filters (genre, mood, rating)
-def recommend_movies(genre=None, mood=None, rating=None, top_n=5):
-    filtered_df = movies_df
-    if genre:
-        filtered_df = filtered_df[filtered_df['Genre'].str.contains(genre, case=False, na=False)]
-    if rating:
-        filtered_df = filtered_df[filtered_df['IMDB_Rating'] >= rating]
-    filtered_df = filtered_df.sample(frac=1).reset_index(drop=True) # Randomize the order
-    recommendations = []
-    for idx, row in filtered_df.iterrows():
-        overview = row['Overview']
-        if pd.isna (overview):
-            continue
-            polarity = TextBlob (overview).sentiment.polarity
-        if (mood and ((TextBlob (mood).sentiment.polarity and polarity > 0) or polarity >= 0)) or not mood:
-            recommendations.append((row['Series_Title'], polarity))
-        if len(recommendations) == top_n:
-            break
-    return recommendations if recommendations else "No suitable movie recommendations found."
+# --- Step 3: Sentiment Analysis ---
+sentiment_score = TextBlob(sentiment_input).sentiment.polarity
+if sentiment_score > 0:
+    mood = "positive"
+elif sentiment_score < 0:
+    mood = "dark"
+else:
+    mood = "neutral"
 
-# Display recommendations🍿 😊  😞  🎥
-def display_recommendations (recs, name):
-    print(Fore.YELLOW + f"\n AI-Analyzed Movie Recommendations for {name}:")
-    for idx, (title, polarity) in enumerate (recs, 1):
-        sentiment = "Positive" if polarity > O else "Negative" if polarity < 0  else "Neutral"
-        print(f" (Fore.CYAN) [idx]. {title} (Polarity: {polarity:.2f}, {sentiment})")
-# Small processing animation
-def processing_animation():
-    for_ in range(3):
-    print(Fore.YELLOW + ".", end="", flush =True)
-    time.sleep(0.5)
+print(Fore.GREEN + f"\nAnalyzing your mood... It seems you want a {mood} movie!\n")
 
-# Handle AI recommendation flow 🔍
-def handle_ai (name):
-    print(Fore.BLUE + "\n Let's find the perfect movie for you!\n")
-    #Show genres in a single line
-    print(Fore.GREEN + "Available Genres: ", end="")
-    for idx, genre in enumerate (genres, 1):
-        print(f"[Fore.CYAN) [idx]. (genre)")
-        print() #To move to the next line after all genres are listed
-        while True:
-        genre_input = input(Fore. YELLOW + "Enter genre number or name: ").strip()
-        if genre_input.isdigit() and 1 <= int(genre_input) <= len(genres):
-            genre = genres [int(genre_input)-1]
-            break
-        elif genre_input.title() in genres:
-            genre = genre_input.title()
-            break
-print(Fore.RED + "Invalid input. Try again.\n")
-mood = input(Fore.YELLOW + "How do you feel today? (Describe your mood): ").strip()
-    # Processing animation while analyzing mood 
-    
-    # Processing animation while finding movies
-    
-      # Small processing animation while finding movies 
+# --- Step 4: Filter and Recommend ---
+recommendations = movies[movies["Genre"].str.lower() == genre_input.lower()]
 
-   
-# Main program 
+if not recommendations.empty:
+    print(Fore.MAGENTA + f"Here are some {genre_input} movies for you:\n")
+    for i, row in recommendations.iterrows():
+        print(Fore.CYAN + f"- {row['Title']} ({row['Genre']}) → {row['Description']}")
+else:
+    print(Fore.RED + "Sorry, no movies found in that genre.")
+
+print(Style.BRIGHT + Fore.GREEN + "\n Enjoy your movie time!")
